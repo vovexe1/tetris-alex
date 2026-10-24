@@ -248,16 +248,18 @@
             font-size: 18px;
             background: rgba(79, 70, 229, 0.7);
             color: white;
+            font-weight: bold;
         }
 
-        .soft-drop-btn {
+        .space-drop-btn {
             grid-column: span 4;
-            padding: 8px 0;
+            padding: 10px 0;
             border-radius: 10px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: bold;
-            background: rgba(30, 41, 59, 0.8);
-            color: #e2e8f0;
+            background: linear-gradient(to right, #db2777, #9333ea);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .install-btn {
@@ -380,22 +382,29 @@
 
                 <div class="side-box glass-panel" style="border-radius: 12px; text-align: left; line-height: 1.5; color: #cbd5e1;">
                     <p style="color: #fde047; font-weight: bold; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; margin-bottom: 4px;">💡 조작법</p>
-                    <p>◀️▶️ : 이동</p>
-                    <p>🔄 : 회전</p>
-                    <p>🔽 : 천천히</p>
-                    <p>⏬ : 바로 떨구기</p>
+                    <p>◀️ : 왼쪽 이동</p>
+                    <p>▶️ : 오른쪽 이동</p>
+                    <p>🔄 : 방향 전환</p>
+                    <p>🔽 : 천천히 내리기</p>
+                    <p>⏬ : 한 번에 내려놓기</p>
                 </div>
             </div>
 
         </div>
 
-        <!-- Touch Controls -->
+        <!-- Touch Controls (요청하신 배치로 수정 완료) -->
         <div class="control-grid glass-panel" style="border-radius: 16px;">
+            <!-- 1열: 왼쪽 -->
             <button onclick="handleTouchInput('left')" class="ctrl-btn btn-arcade">◀️</button>
-            <button onclick="handleTouchInput('rotate')" class="ctrl-btn btn-arcade" style="background: rgba(147, 51, 234, 0.7);">🔄</button>
+            <!-- 2열: 오른쪽 -->
             <button onclick="handleTouchInput('right')" class="ctrl-btn btn-arcade">▶️</button>
-            <button onclick="handleTouchInput('hardDrop')" class="ctrl-btn btn-arcade" style="background: rgba(219, 39, 119, 0.8);">⏬</button>
-            <button onclick="handleTouchInput('down')" class="soft-drop-btn btn-arcade">🔽 아래로 천천히 내리기 (Soft Drop)</button>
+            <!-- 3열: 방향 전환 -->
+            <button onclick="handleTouchInput('rotate')" class="ctrl-btn btn-arcade" style="background: rgba(147, 51, 234, 0.7);">🔄</button>
+            <!-- 4열: 천천히 내려가기 -->
+            <button onclick="handleTouchInput('down')" class="ctrl-btn btn-arcade" style="background: rgba(16, 185, 129, 0.7);">🔽</button>
+            
+            <!-- 아래 행: 스페이스바 (한 번에 내려놓기) -->
+            <button onclick="handleTouchInput('hardDrop')" class="space-drop-btn btn-arcade">⏬ 한 번에 내려놓기 (Space)</button>
         </div>
 
     </main>
