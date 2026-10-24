@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>신나는 알록달록 테트리스!</title>
+    
+    <!-- PWA Primary Meta Tags -->
+    <meta name="theme-color" content="#1e1b4b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="테트리스">
+
+    <!-- App Icon (Embedded SVG) -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%23ff007f'><rect width='512' height='512' rx='100' fill='%231e1b4b'/><path fill='%23ffeb3b' d='M160 160h60v60h-60zm60 0h60v60h-60zm60 0h60v60h-60zm-60 60h60v60h-60z'/></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%23ff007f'><rect width='512' height='512' rx='100' fill='%231e1b4b'/><path fill='%23ffeb3b' d='M160 160h60v60h-60zm60 0h60v60h-60zm60 0h60v60h-60zm-60 60h60v60h-60z'/></svg>">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Gamja+Flower&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Jua', sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #311b92 50%, #4a148c 100%);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        .game-font {
+            font-family: 'Jua', sans-serif;
+        }
+
+        /* 3D Glassmorphic Container */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Glow animation for combos */
+        @keyframes pulseGlow {
+            0% { text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f; transform: scale(1); }
+            50% { text-shadow: 0 0 20px #00f0ff, 0 0 30px #00f0ff; transform: scale(1.15); }
+            100% { text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f; transform: scale(1); }
+        }
+
+        .combo-text {
+            animation: pulseGlow 0.5s infinite ease-in-out;
+        }
+
+        /* Arcade Button Effects */
+        .btn-arcade {
+            transition: transform 0.05s ease, box-shadow 0.05s ease;
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.4);
+        }
+        .btn-arcade:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        /* Canvas styling */
+        canvas {
+            border-radius: 12px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+        }
+    </style>
+
+    <!-- Dynamic PWA Manifest & Service Worker Script -->
+    <script>
+        const manifestData = {
+            "name": "알록달록 테트리스",
+            "short_name": "테트리스",
+            "start_url": "./",
+            "display": "standalone",
+            "background_color": "#1e1b4b",
+            "theme_color": "#1e1b4b",
+            "orientation": "portrait-primary",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%23ff007f'><rect width='512' height='512' rx='100' fill='%231e1b4b'/><path fill='%23ffeb3b' d='M160 160h60v60h-60zm60 0h60v60h-60zm60 0h60v60h-60zm-60 60h60v60h-60z'/></svg>",
+                    "sizes": "192x192 512x512",
+                    "type": "image/svg+xml",
+                    "purpose": "any maskable"
+                }
+            ]
+        };
+
+        const stringManifest = JSON.stringify(manifestData);
+        const blobManifest = new Blob([stringManifest], {type: 'application/json'});
+        const manifestUrl = URL.createObjectURL(blobManifest);
+        const linkManifest = document.createElement('link');
+        linkManifest.rel = 'manifest';
+        linkManifest.href = manifestUrl;
+        document.head.appendChild(linkManifest);
+
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const CACHE_NAME = 'tetris-pwa-v1';
+                self.addEventListener('install', (e) => { self.skipWaiting(); });
+                self.addEventListener('activate', (e) => { e.waitUntil(clients.claim()); });
+                self.addEventListener('fetch', (e) => {
+                    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+                });
+            `;
+            const blobSW = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blobSW);
+
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register(swUrl)
+                    .then(reg => console.log('PWA Registered'))
+                    .catch(err => console.log('PWA Failed: ', err));
+            });
+        }
+    </script>
+</head>
+<body class="min-h-screen text-white flex flex-col items-center justify-between p-2 sm:p-4 overflow-x-hidden">
+
+    <!-- Top Header -->
+    <header class="w-full max-w-md flex flex-col items-center mb-2 px-2">
+        <!-- 알렉스아빠 사랑 문구 로그 -->
+        <div class="text-center mb-1 animate-bounce">
+            <span class="text-sm sm:text-base text-pink-300 font-bold bg-pink-950/60 px-3 py-1 rounded-full border border-pink-500/40 shadow-lg tracking-wider">
+                ❤️ 알렉스아빠가 아들을 사랑하며~~ ❤️
+            </span>
+        </div>
+
+        <div class="w-full flex justify-between items-center mt-1">
+            <div class="flex items-center space-x-2">
+                <span class="text-3xl sm:text-4xl text-yellow-300 drop-shadow-[0_2px_10px_rgba(253,224,71,0.5)]">🧩</span>
+                <h1 class="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 via-yellow-300 to-cyan-300 tracking-wider">
+                    알록달록 테트리스
+                </h1>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <!-- Native PWA Install Button -->
+                <button id="pwaInstallBtn" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition flex items-center gap-1 animate-pulse">
+                    <i class="fa-solid fa-download"></i>
+                    <span>앱 설치</span>
+                </button>
+
+                <button id="bgmBtn" class="glass-panel px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold flex items-center gap-2 hover:bg-white/20 transition">
+                    <i class="fa-solid fa-volume-xmark text-red-400" id="bgmIcon"></i>
+                    <span id="bgmText">BGM 끔</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Game Workspace Area -->
+    <main class="w-full max-w-md flex flex-col items-center gap-3">
+
+        <!-- Top Score & Control Dashboard -->
+        <div class="w-full glass-panel rounded-2xl p-3 grid grid-cols-3 gap-2 text-center items-center">
+            <div class="bg-black/30 p-2 rounded-xl border border-white/10">
+                <p class="text-xs text-cyan-300 font-bold">점수</p>
+                <p id="score" class="text-xl sm:text-2xl font-black text-yellow-300 tracking-wider">0</p>
+            </div>
+            <div class="bg-black/30 p-2 rounded-xl border border-white/10">
+                <p class="text-xs text-pink-300 font-bold">레벨</p>
+                <p id="level" class="text-xl sm:text-2xl font-black text-pink-400">1</p>
+            </div>
+            <div class="bg-black/30 p-2 rounded-xl border border-white/10">
+                <p class="text-xs text-emerald-300 font-bold">삭제한 줄</p>
+                <p id="lines" class="text-xl sm:text-2xl font-black text-emerald-400">0</p>
+            </div>
+        </div>
+
+        <!-- Canvas and Side Info Container -->
+        <div class="w-full flex justify-center items-start gap-3">
+
+            <!-- Main Tetris Canvas Area -->
+            <div class="relative glass-panel p-2 rounded-2xl flex justify-center items-center">
+                <canvas id="tetris" width="240" height="480" class="bg-slate-950/80"></canvas>
+
+                <!-- Combo Floating Banner -->
+                <div id="comboBanner" class="absolute pointer-events-none hidden top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-20">
+                    <span id="comboText" class="text-3xl sm:text-4xl font-extrabold text-yellow-300 combo-text drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+                        2 COMBO!
+                    </span>
+                </div>
+
+                <!-- Game Over / Pause Overlay -->
+                <div id="overlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center p-4 z-30 transition-all duration-300">
+                    <div class="text-center space-y-4 max-w-xs">
+                        <div id="overlayTitle" class="text-3xl font-black text-yellow-300 drop-shadow-lg">
+                            🎮 준비되셨나요?
+                        </div>
+                        <p id="overlaySub" class="text-sm text-slate-200">
+                            방향키나 아래 버튼으로 블록을 맞춰보세요!
+                        </p>
+
+                        <!-- Difficulty Selection -->
+                        <div class="space-y-1">
+                            <label class="text-xs text-cyan-300 font-bold">난이도 선택</label>
+                            <div class="flex justify-center gap-2">
+                                <button onclick="setDifficulty('easy')" id="diff-easy" class="diff-btn text-xs px-3 py-1.5 rounded-lg bg-emerald-500/80 font-bold hover:bg-emerald-500 transition">쉬움</button>
+                                <button onclick="setDifficulty('normal')" id="diff-normal" class="diff-btn text-xs px-3 py-1.5 rounded-lg bg-yellow-500/30 border border-yellow-500/50 font-bold hover:bg-yellow-500/80 transition">보통</button>
+                                <button onclick="setDifficulty('hard')" id="diff-hard" class="diff-btn text-xs px-3 py-1.5 rounded-lg bg-red-500/30 border border-red-500/50 font-bold hover:bg-red-500/80 transition">어려움</button>
+                            </div>
+                        </div>
+
+                        <!-- Start/Resume Button -->
+                        <button id="startBtn" onclick="togglePlay()" class="btn-arcade w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-extrabold py-3 px-6 rounded-xl text-lg tracking-wider border border-white/30 shadow-lg">
+                            게임 시작하기!
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Info Panel (Next Block & Pause) -->
+            <div class="flex flex-col gap-3 w-28 sm:w-32">
+                <!-- Next Piece Canvas -->
+                <div class="glass-panel p-3 rounded-2xl text-center flex flex-col items-center">
+                    <p class="text-xs font-bold text-cyan-300 mb-2">다음 블록</p>
+                    <canvas id="next" width="80" height="80" class="bg-slate-950/60 rounded-lg border border-white/10"></canvas>
+                </div>
+
+                <!-- Pause Button -->
+                <button id="pauseBtn" onclick="togglePause()" class="btn-arcade glass-panel p-3 rounded-2xl flex flex-col items-center justify-center hover:bg-white/20 transition group">
+                    <i id="pauseIcon" class="fa-solid fa-pause text-2xl text-yellow-300 mb-1 group-hover:scale-110 transition"></i>
+                    <span id="pauseText" class="text-xs font-bold text-slate-200">일시정지</span>
+                </button>
+
+                <!-- Helpful Guide -->
+                <div class="glass-panel p-2.5 rounded-2xl text-[11px] text-slate-300 space-y-1">
+                    <p class="font-bold text-yellow-300 text-xs text-center border-b border-white/10 pb-1 mb-1">💡 조작법</p>
+                    <p>⬅️➡️ : 이동</p>
+                    <p>⬆️ : 회전</p>
+                    <p>⬇️ : 천천히 내려놓기</p>
+                    <p>Space : 바로 떨어뜨리기</p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- On-Screen Touch Controls (Mobile Friendly) -->
+        <div class="w-full max-w-md glass-panel p-3 rounded-2xl grid grid-cols-4 gap-2 text-xl font-bold">
+            <button onclick="handleTouchInput('left')" class="btn-arcade bg-indigo-600/70 hover:bg-indigo-600 active:bg-indigo-500 py-3 rounded-xl border border-indigo-400/30 flex items-center justify-center">
+                <i class="fa-solid fa-arrow-left text-yellow-300"></i>
+            </button>
+            <button onclick="handleTouchInput('rotate')" class="btn-arcade bg-purple-600/70 hover:bg-purple-600 active:bg-purple-500 py-3 rounded-xl border border-purple-400/30 flex items-center justify-center">
+                <i class="fa-solid fa-rotate-right text-pink-300"></i>
+            </button>
+            <button onclick="handleTouchInput('right')" class="btn-arcade bg-indigo-600/70 hover:bg-indigo-600 active:bg-indigo-500 py-3 rounded-xl border border-indigo-400/30 flex items-center justify-center">
+                <i class="fa-solid fa-arrow-right text-yellow-300"></i>
+            </button>
+            <button onclick="handleTouchInput('hardDrop')" class="btn-arcade bg-pink-600/80 hover:bg-pink-600 active:bg-pink-500 py-3 rounded-xl border border-pink-400/30 flex items-center justify-center">
+                <i class="fa-solid fa-angles-down text-cyan-300"></i>
+            </button>
+            <!-- Soft Drop Button -->
+            <button onclick="handleTouchInput('down')" class="col-span-4 btn-arcade bg-slate-800/80 hover:bg-slate-700 active:bg-slate-600 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-200 flex items-center justify-center gap-2">
+                <i class="fa-solid fa-arrow-down text-emerald-400"></i> 아래로 천천히 내리기 (Soft Drop)
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-xs text-slate-400 mt-2 text-center">
+        🎉 초등학교 5학년을 위한 신나는 파스텔 테트리스 게임
+    </footer>
+
+    <!-- Game Logic & Web Audio API JavaScript -->
+    <script>
+        // PWA Installation Button Logic
+        let deferredPrompt;
+        const installBtn = document.getElementById('pwaInstallBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.classList.remove('hidden');
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBtn.classList.add('hidden');
+                }
+                deferredPrompt = null;
+            }
+        });
+
+        window.addEventListener('appinstalled', () => {
+            installBtn.classList.add('hidden');
+        });
+
+        // --- Web Audio API Synth Sound System ---
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.bgmInterval = null;
+                this.bgmPlaying = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playTone(freq, type = 'sine', duration = 0.1, vol = 0.1) {
+                if (!this.ctx) return;
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(vol, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e) {}
+            }
+
+            playMove() { this.playTone(300, 'triangle', 0.05, 0.05); }
+            playRotate() { this.playTone(450, 'sine', 0.08, 0.08); }
+            playDrop() { this.playTone(180, 'square', 0.1, 0.1); }
+            
+            playLineClear(combo = 1) {
+                if (!this.ctx) return;
+                const baseFreq = 400 + (combo * 100);
+                const notes = [baseFreq, baseFreq * 1.25, baseFreq * 1.5, baseFreq * 2];
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => {
+                        this.playTone(freq, 'sine', 0.15, 0.12);
+                    }, idx * 60);
+                });
+            }
+
+            playGameOver() {
+                if (!this.ctx) return;
+                const notes = [300, 260, 220, 180, 140];
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => {
+                        this.playTone(freq, 'sawtooth', 0.2, 0.12);
+                    }, idx * 100);
+                });
+            }
+
+            toggleBGM() {
+                this.init();
+                this.bgmPlaying = !this.bgmPlaying;
+                const icon = document.getElementById('bgmIcon');
+                const text = document.getElementById('bgmText');
+
+                if (this.bgmPlaying) {
+                    icon.className = "fa-solid fa-volume-high text-emerald-400";
+                    text.textContent = "BGM 켬";
+                    this.startBGM();
+                } else {
+                    icon.className = "fa-solid fa-volume-xmark text-red-400";
+                    text.textContent = "BGM 끔";
+                    this.stopBGM();
+                }
+            }
+
+            startBGM() {
+                if (this.bgmInterval) clearInterval(this.bgmInterval);
+                const melody = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63, 293.66, 349.23, 440.00, 349.23];
+                let step = 0;
+                this.bgmInterval = setInterval(() => {
+                    if (this.bgmPlaying) {
+                        this.playTone(melody[step % melody.length], 'sine', 0.2, 0.03);
+                        step++;
+                    }
+                }, 250);
+            }
+
+            stopBGM() {
+                if (this.bgmInterval) {
+                    clearInterval(this.bgmInterval);
+                    this.bgmInterval = null;
+                }
+            }
+        }
+
+        const sounds = new SoundEngine();
+        document.getElementById('bgmBtn').addEventListener('click', () => sounds.toggleBGM());
+
+        // --- Tetris Game Canvas & Mechanics ---
+        const canvas = document.getElementById('tetris');
+        const context = canvas.getContext('2d');
+        const nextCanvas = document.getElementById('next');
+        const nextContext = nextCanvas.getContext('2d');
+
+        const COLS = 10;
+        const ROWS = 20;
+        const BLOCK_SIZE = 24;
+
+        context.scale(BLOCK_SIZE, BLOCK_SIZE);
+        nextContext.scale(20, 20);
+
+        const COLORS = [
+            null,
+            '#00f0ff', // I - Cyan
+            '#ff007f', // J - Neon Pink
+            '#ff9900', // L - Orange
+            '#ffeb3b', // O - Yellow
+            '#00ff66', // S - Bright Green
+            '#a855f7', // T - Purple
+            '#ff3344'  // Z - Bright Red
+        ];
+
+        const SHAPES = [
+            [],
+            [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]],
+            [[2, 0, 0], [2, 2, 2], [0, 0, 0]],
+            [[0, 0, 3], [3, 3, 3], [0, 0, 0]],
+            [[4, 4], [4, 4]],
+            [[0, 5, 5], [5, 5, 0], [0, 0, 0]],
+            [[0, 6, 0], [6, 6, 6], [0, 0, 0]],
+            [[7, 7, 0], [0, 7, 7], [0, 0, 0]]
+        ];
+
+        let board = createMatrix(COLS, ROWS);
+        let score = 0;
+        let lines = 0;
+        let level = 1;
+        let combo = 0;
+        let dropCounter = 0;
+        let dropInterval = 1000;
+        let lastTime = 0;
+        let isPaused = false;
+        let isGameOver = true;
+        let diffSpeeds = { easy: 1000, normal: 700, hard: 400 };
+        let selectedDiff = 'easy';
+
+        const player = {
+            pos: { x: 0, y: 0 },
+            matrix: null,
+            next: null
+        };
+
+        function createMatrix(w, h) {
+            const matrix = [];
+            while (h--) {
+                matrix.push(new Array(w).fill(0));
+            }
+            return matrix;
+        }
+
+        function createPiece(type) {
+            return SHAPES[type];
+        }
+
+        function drawBlock(ctx, x, y, colorIndex) {
+            const color = COLORS[colorIndex];
+            ctx.fillStyle = color;
+            ctx.fillRect(x + 0.05, y + 0.05, 0.9, 0.9);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+            ctx.fillRect(x + 0.1, y + 0.1, 0.7, 0.2);
+            ctx.fillRect(x + 0.1, y + 0.1, 0.2, 0.7);
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+            ctx.fillRect(x + 0.1, y + 0.8, 0.8, 0.1);
+            ctx.fillRect(x + 0.8, y + 0.1, 0.1, 0.8);
+        }
+
+        function draw() {
+            context.fillStyle = '#090d16';
+            context.fillRect(0, 0, COLS, ROWS);
+
+            context.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            context.lineWidth = 0.02;
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    context.strokeRect(c, r, 1, 1);
+                }
+            }
+
+            drawMatrix(board, { x: 0, y: 0 }, context);
+
+            if (player.matrix) {
+                drawGhostPiece();
+                drawMatrix(player.matrix, player.pos, context);
+            }
+
+            drawNextPiece();
+        }
+
+        function drawGhostPiece() {
+            const ghostPos = { x: player.pos.x, y: player.pos.y };
+            while (!collide(board, { pos: ghostPos, matrix: player.matrix })) {
+                ghostPos.y++;
+            }
+            ghostPos.y--;
+
+            player.matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        context.fillStyle = 'rgba(255, 255, 255, 0.15)';
+                        context.fillRect(ghostPos.x + x + 0.1, ghostPos.y + y + 0.1, 0.8, 0.8);
+                        context.strokeStyle = COLORS[value];
+                        context.lineWidth = 0.05;
+                        context.strokeRect(ghostPos.x + x + 0.1, ghostPos.y + y + 0.1, 0.8, 0.8);
+                    }
+                });
+            });
+        }
+
+        function drawMatrix(matrix, offset, ctx) {
+            matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        drawBlock(ctx, x + offset.x, y + offset.y, value);
+                    }
+                });
+            });
+        }
+
+        function drawNextPiece() {
+            nextContext.fillStyle = '#090d16';
+            nextContext.fillRect(0, 0, 4, 4);
+            if (player.next) {
+                const offX = (4 - player.next[0].length) / 2;
+                const offY = (4 - player.next.length) / 2;
+                drawMatrix(player.next, { x: offX, y: offY }, nextContext);
+            }
+        }
+
+        function merge(board, player) {
+            player.matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        board[y + player.pos.y][x + player.pos.x] = value;
+                    }
+                });
+            });
+        }
+
+        function collide(board, player) {
+            const [m, o] = [player.matrix, player.pos];
+            for (let y = 0; y < m.length; ++y) {
+                for (let x = 0; x < m[y].length; ++x) {
+                    if (m[y][x] !== 0 &&
+                       (board[y + o.y] && board[y + o.y][x + o.x]) !== 0) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function playerDrop() {
+            player.pos.y++;
+            if (collide(board, player)) {
+                player.pos.y--;
+                merge(board, player);
+                sounds.playDrop();
+                playerReset();
+                arenaSweep();
+                updateScore();
+            }
+            dropCounter = 0;
+        }
+
+        function playerHardDrop() {
+            sounds.init();
+            while (!collide(board, player)) {
+                player.pos.y++;
+            }
+            player.pos.y--;
+            merge(board, player);
+            sounds.playDrop();
+            playerReset();
+            arenaSweep();
+            updateScore();
+            dropCounter = 0;
+        }
+
+        function playerMove(dir) {
+            sounds.init();
+            player.pos.x += dir;
+            if (collide(board, player)) {
+                player.pos.x -= dir;
+            } else {
+                sounds.playMove();
+            }
+        }
+
+        function playerRotate() {
+            sounds.init();
+            const pos = player.pos.x;
+            let offset = 1;
+            rotate(player.matrix);
+            while (collide(board, player)) {
+                player.pos.x += offset;
+                offset = -(offset + (offset > 0 ? 1 : -1));
+                if (offset > player.matrix[0].length) {
+                    rotate(player.matrix, -1);
+                    player.pos.x = pos;
+                    return;
+                }
+            }
+            sounds.playRotate();
+        }
+
+        function rotate(matrix, dir = 1) {
+            for (let y = 0; y < matrix.length; ++y) {
+                for (let x = 0; x < y; ++x) {
+                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+                }
+            }
+            if (dir > 0) {
+                matrix.forEach(row => row.reverse());
+            } else {
+                matrix.reverse();
+            }
+        }
+
+        function playerReset() {
+            if (!player.next) {
+                player.next = createPiece(Math.floor(Math.random() * 7) + 1);
+            }
+            player.matrix = player.next;
+            player.next = createPiece(Math.floor(Math.random() * 7) + 1);
+            player.pos.y = 0;
+            player.pos.x = Math.floor(COLS / 2) - Math.floor(player.matrix[0].length / 2);
+
+            if (collide(board, player)) {
+                isGameOver = true;
+                sounds.playGameOver();
+                showOverlay('💥 게임 오버!', `최종 점수: ${score}점`);
+            }
+        }
+
+        function arenaSweep() {
+            let rowCount = 0;
+            outer: for (let y = board.length - 1; y >= 0; --y) {
+                for (let x = 0; x < board[y].length; ++x) {
+                    if (board[y][x] === 0) {
+                        continue outer;
+                    }
+                }
+                const row = board.splice(y, 1)[0].fill(0);
+                board.unshift(row);
+                ++y;
+                rowCount++;
+            }
+
+            if (rowCount > 0) {
+                combo++;
+                lines += rowCount;
+                score += (rowCount * 100) * rowCount + (combo * 50);
+                level = Math.floor(lines / 10) + 1;
+                dropInterval = Math.max(100, diffSpeeds[selectedDiff] - (level - 1) * 80);
+                
+                sounds.playLineClear(combo);
+                showComboBanner(combo);
+            } else {
+                combo = 0;
+            }
+        }
+
+        function showComboBanner(comboCount) {
+            if (comboCount <= 1) return;
+            const banner = document.getElementById('comboBanner');
+            const text = document.getElementById('comboText');
+            text.textContent = `${comboCount} 콤보!! 🔥`;
+            banner.classList.remove('hidden');
+            setTimeout(() => {
+                banner.classList.add('hidden');
+            }, 1000);
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('lines').textContent = lines;
+        }
+
+        function update(time = 0) {
+            if (isGameOver || isPaused) return;
+
+            const deltaTime = time - lastTime;
+            lastTime = time;
+            dropCounter += deltaTime;
+
+            if (dropCounter > dropInterval) {
+                playerDrop();
+            }
+
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function setDifficulty(diff) {
+            selectedDiff = diff;
+            document.querySelectorAll('.diff-btn').forEach(btn => {
+                btn.className = "diff-btn text-xs px-3 py-1.5 rounded-lg bg-yellow-500/20 border border-yellow-500/40 font-bold hover:bg-yellow-500/50 transition";
+            });
+            document.getElementById(`diff-${diff}`).className = "diff-btn text-xs px-3 py-1.5 rounded-lg bg-emerald-500 font-bold text-white shadow-lg transition";
+            dropInterval = diffSpeeds[diff];
+        }
+
+        function showOverlay(title, sub) {
+            document.getElementById('overlayTitle').textContent = title;
+            document.getElementById('overlaySub').textContent = sub;
+            document.getElementById('startBtn').textContent = isGameOver ? "게임 다시 시작!" : "게임 계속하기";
+            document.getElementById('overlay').classList.remove('hidden');
+        }
+
+        function hideOverlay() {
+            document.getElementById('overlay').classList.add('hidden');
+        }
+
+        function togglePlay() {
+            sounds.init();
+            if (isGameOver) {
+                board = createMatrix(COLS, ROWS);
+                score = 0;
+                lines = 0;
+                level = 1;
+                combo = 0;
+                dropInterval = diffSpeeds[selectedDiff];
+                isGameOver = false;
+                isPaused = false;
+                updateScore();
+                playerReset();
+                hideOverlay();
+                lastTime = performance.now();
+                update();
+            } else if (isPaused) {
+                togglePause();
+            }
+        }
+
+        function togglePause() {
+            if (isGameOver) return;
+            isPaused = !isPaused;
+            const icon = document.getElementById('pauseIcon');
+            const text = document.getElementById('pauseText');
+
+            if (isPaused) {
+                icon.className = "fa-solid fa-play text-2xl text-emerald-400 mb-1";
+                text.textContent = "계속하기";
+                showOverlay("⏸️ 일시 정지", "잠시 쉬어가는 중입니다.");
+            } else {
+                icon.className = "fa-solid fa-pause text-2xl text-yellow-300 mb-1";
+                text.textContent = "일시정지";
+                hideOverlay();
+                lastTime = performance.now();
+                update();
+            }
+        }
+
+        function handleTouchInput(action) {
+            if (isGameOver || isPaused) return;
+            switch(action) {
+                case 'left': playerMove(-1); break;
+                case 'right': playerMove(1); break;
+                case 'rotate': playerRotate(); break;
+                case 'down': playerDrop(); break;
+                case 'hardDrop': playerHardDrop(); break;
+            }
+            draw();
+        }
+
+        document.addEventListener('keydown', event => {
+            if (isGameOver || isPaused) {
+                if (event.keyCode === 32 && isGameOver) togglePlay();
+                return;
+            }
+
+            switch(event.keyCode) {
+                case 37:
+                    playerMove(-1);
+                    break;
+                case 39:
+                    playerMove(1);
+                    break;
+                case 40:
+                    playerDrop();
+                    break;
+                case 38:
+                    playerRotate();
+                    break;
+                case 32:
+                    event.preventDefault();
+                    playerHardDrop();
+                    break;
+                case 80:
+                    togglePause();
+                    break;
+            }
+            draw();
+        });
+
+        draw();
+    </script>
+</body>
+</html>
