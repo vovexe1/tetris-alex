@@ -16,68 +16,259 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%23ff007f'><rect width='512' height='512' rx='100' fill='%231e1b4b'/><path fill='%23ffeb3b' d='M160 160h60v60h-60zm60 0h60v60h-60zm60 0h60v60h-60zm-60 60h60v60h-60z'/></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%23ff007f'><rect width='512' height='512' rx='100' fill='%231e1b4b'/><path fill='%23ffeb3b' d='M160 160h60v60h-60zm60 0h60v60h-60zm60 0h60v60h-60zm-60 60h60v60h-60z'/></svg>">
 
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
     <style>
+        /* Pure Offline CSS Styles - No External Library Required */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: 'Jua', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
             background: linear-gradient(135deg, #1e1b4b 0%, #311b92 50%, #4a148c 100%);
             touch-action: manipulation;
             user-select: none;
             -webkit-user-select: none;
-            margin: 0;
-            padding: 0;
+            min-height: 100vh;
             color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            overflow-x: hidden;
         }
-        
-        /* 3D Glassmorphic Container */
+
+        /* Glassmorphic Panel UI */
         .glass-panel {
             background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        /* Glow animation for combos */
-        @keyframes pulseGlow {
-            0% { text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f; transform: scale(1); }
-            50% { text-shadow: 0 0 20px #00f0ff, 0 0 30px #00f0ff; transform: scale(1.15); }
-            100% { text-shadow: 0 0 10px #ff007f, 0 0 20px #ff007f; transform: scale(1); }
+        .header-box {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 8px;
         }
 
-        .combo-text {
-            animation: pulseGlow 0.5s infinite ease-in-out;
+        .love-badge {
+            font-size: 13px;
+            font-weight: bold;
+            color: #fbcfe8;
+            background: rgba(131, 24, 67, 0.6);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(244, 114, 182, 0.4);
+            margin-bottom: 6px;
+            animation: bounceAnim 1.5s infinite ease-in-out;
         }
 
-        /* Arcade Button Effects */
-        .btn-arcade {
-            transition: transform 0.05s ease, box-shadow 0.05s ease;
-            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.4);
-        }
-        .btn-arcade:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
-        }
-
-        /* Canvas styling */
-        canvas {
-            border-radius: 12px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
-        }
-
-        /* Heart bounce animation */
         @keyframes bounceAnim {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-4px); }
         }
-        .animate-bounce-custom {
-            animation: bounceAnim 1.5s infinite ease-in-out;
+
+        .title-row {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-title {
+            font-size: 22px;
+            font-weight: 800;
+            background: linear-gradient(to right, #f472b6, #fde047, #67e8f9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .score-board {
+            width: 100%;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            text-align: center;
+        }
+
+        .score-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .score-label {
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .score-val {
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .game-layout {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            padding: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        canvas {
+            border-radius: 10px;
+            background: rgba(9, 13, 22, 0.9);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+        }
+
+        /* Overlay Window */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(9, 13, 22, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 30;
+            text-align: center;
+        }
+
+        .overlay-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: #fde047;
+            margin-bottom: 6px;
+        }
+
+        .overlay-sub {
+            font-size: 12px;
+            color: #e2e8f0;
+            margin-bottom: 12px;
+        }
+
+        .diff-group {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        .diff-btn {
+            font-size: 12px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(253, 224, 71, 0.4);
+            background: rgba(234, 179, 8, 0.2);
+            color: #ffffff;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .diff-btn.active {
+            background: #10b981;
+            border-color: #10b981;
+        }
+
+        .start-btn {
+            width: 100%;
+            background: linear-gradient(to right, #ec4899, #9333ea);
+            color: white;
+            font-size: 16px;
+            font-weight: 900;
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 110px;
+        }
+
+        .side-box {
+            padding: 8px;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .btn-arcade {
+            transition: transform 0.05s ease;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.4);
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-arcade:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+        }
+
+        .control-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            padding: 10px;
+        }
+
+        .ctrl-btn {
+            padding: 12px 0;
+            border-radius: 10px;
+            font-size: 18px;
+            background: rgba(79, 70, 229, 0.7);
+            color: white;
+        }
+
+        .soft-drop-btn {
+            grid-column: span 4;
+            padding: 8px 0;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: bold;
+            background: rgba(30, 41, 59, 0.8);
+            color: #e2e8f0;
+        }
+
+        .hidden {
+            display: none !important;
         }
     </style>
 
-    <!-- PWA Manifest & Offline Cache Service Worker -->
+    <!-- Native Inline PWA Manifest & Service Worker -->
     <script>
         const manifestData = {
             "name": "알록달록 테트리스",
@@ -87,181 +278,122 @@
             "background_color": "#1e1b4b",
             "theme_color": "#1e1b4b",
             "orientation": "portrait-primary",
-            "icons": [
-                {
-                    "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%23ff007f'><rect width='512' height='512' rx='100' fill='%231e1b4b'/><path fill='%23ffeb3b' d='M160 160h60v60h-60zm60 0h60v60h-60zm60 0h60v60h-60zm-60 60h60v60h-60z'/></svg>",
-                    "sizes": "192x192 512x512",
-                    "type": "image/svg+xml",
-                    "purpose": "any maskable"
-                }
-            ]
+            "icons": [{
+                "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%23ff007f'><rect width='512' height='512' rx='100' fill='%231e1b4b'/><path fill='%23ffeb3b' d='M160 160h60v60h-60zm60 0h60v60h-60zm60 0h60v60h-60zm-60 60h60v60h-60z'/></svg>",
+                "sizes": "192x192 512x512",
+                "type": "image/svg+xml"
+            }]
         };
 
-        const stringManifest = JSON.stringify(manifestData);
-        const blobManifest = new Blob([stringManifest], {type: 'application/json'});
-        const manifestUrl = URL.createObjectURL(blobManifest);
+        const blobManifest = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
         const linkManifest = document.createElement('link');
         linkManifest.rel = 'manifest';
-        linkManifest.href = manifestUrl;
+        linkManifest.href = URL.createObjectURL(blobManifest);
         document.head.appendChild(linkManifest);
 
-        // Offline First Service Worker Configuration
         if ('serviceWorker' in navigator) {
             const swCode = `
-                const CACHE_NAME = 'tetris-offline-v3';
-                
-                self.addEventListener('install', (e) => {
-                    self.skipWaiting();
-                });
-
-                self.addEventListener('activate', (e) => {
-                    e.waitUntil(
-                        caches.keys().then((keys) => {
-                            return Promise.all(
-                                keys.map((key) => {
-                                    if (key !== CACHE_NAME) return caches.delete(key);
-                                })
-                            );
-                        }).then(() => clients.claim())
-                    );
-                });
-
+                const CACHE_NAME = 'tetris-offline-v5';
+                self.addEventListener('install', (e) => self.skipWaiting());
+                self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
                 self.addEventListener('fetch', (e) => {
                     e.respondWith(
-                        caches.match(e.request).then((cachedResponse) => {
-                            if (cachedResponse) return cachedResponse;
-                            return fetch(e.request).then((networkResponse) => {
-                                if (networkResponse && networkResponse.status === 200) {
-                                    const responseClone = networkResponse.clone();
-                                    caches.open(CACHE_NAME).then((cache) => {
-                                        cache.put(e.request, responseClone);
-                                    });
+                        caches.match(e.request).then((cached) => {
+                            return cached || fetch(e.request).then((netRes) => {
+                                if (netRes && netRes.status === 200) {
+                                    const clone = netRes.clone();
+                                    caches.open(CACHE_NAME).then((c) => c.put(e.request, clone));
                                 }
-                                return networkResponse;
-                            }).catch(() => {
-                                return caches.match('./');
-                            });
+                                return netRes;
+                            }).catch(() => caches.match('./'));
                         })
                     );
                 });
             `;
             const blobSW = new Blob([swCode], { type: 'application/javascript' });
-            const swUrl = URL.createObjectURL(blobSW);
-
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register(swUrl)
-                    .then(reg => console.log('Offline SW Ready'))
-                    .catch(err => console.log('SW Fail: ', err));
+                navigator.serviceWorker.register(URL.createObjectURL(blobSW))
+                    .catch(err => console.log('SW ERR:', err));
             });
         }
     </script>
 </head>
-<body class="min-h-screen text-white flex flex-col items-center justify-between p-2 sm:p-4 overflow-x-hidden">
+<body>
 
     <!-- Top Header -->
-    <header class="w-full max-w-md flex flex-col items-center mb-2 px-2">
-        <div class="text-center mb-1 animate-bounce-custom">
-            <span class="text-sm sm:text-base text-pink-300 font-bold bg-pink-950/60 px-3 py-1 rounded-full border border-pink-500/40 shadow-lg tracking-wider">
-                ❤️ 알렉스아빠가 아들을 사랑하며~~ ❤️
-            </span>
+    <header class="header-box">
+        <div class="love-badge">
+            ❤️ 알렉스아빠가 아들을 사랑하며~~ ❤️
         </div>
-
-        <div class="w-full flex justify-between items-center mt-1">
-            <div class="flex items-center space-x-2">
-                <span class="text-3xl sm:text-4xl text-yellow-300">🧩</span>
-                <h1 class="text-2xl sm:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 via-yellow-300 to-cyan-300 tracking-wider">
-                    알록달록 테트리스
-                </h1>
+        <div class="title-row">
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 28px;">🧩</span>
+                <h1 class="app-title">알록달록 테트리스</h1>
             </div>
             
-            <div class="flex items-center gap-2">
-                <button id="pwaInstallBtn" class="hidden bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition flex items-center gap-1">
-                    <span>📥 앱 설치</span>
-                </button>
-
-                <button id="bgmBtn" class="glass-panel px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold flex items-center gap-1.5 hover:bg-white/20 transition">
-                    <span id="bgmIcon">🔇</span>
-                    <span id="bgmText">BGM 끔</span>
-                </button>
-            </div>
+            <button id="bgmBtn" class="glass-panel" style="padding: 4px 10px; font-size: 11px; font-weight: bold; border-radius: 20px; color: white; cursor: pointer;">
+                <span id="bgmIcon">🔇</span> <span id="bgmText">BGM 끔</span>
+            </button>
         </div>
     </header>
 
-    <!-- Main Game Workspace Area -->
-    <main class="w-full max-w-md flex flex-col items-center gap-3">
+    <!-- Main Workspace -->
+    <main class="main-container">
 
-        <!-- Top Score Dashboard -->
-        <div class="w-full glass-panel rounded-2xl p-3 grid grid-cols-3 gap-2 text-center items-center">
-            <div class="bg-black/30 p-2 rounded-xl border border-white/10">
-                <p class="text-xs text-cyan-300 font-bold">점수</p>
-                <p id="score" class="text-xl sm:text-2xl font-black text-yellow-300 tracking-wider">0</p>
+        <!-- Score Board -->
+        <div class="score-board glass-panel">
+            <div class="score-card">
+                <p class="score-label" style="color: #67e8f9;">점수</p>
+                <p id="score" class="score-val" style="color: #fde047;">0</p>
             </div>
-            <div class="bg-black/30 p-2 rounded-xl border border-white/10">
-                <p class="text-xs text-pink-300 font-bold">레벨</p>
-                <p id="level" class="text-xl sm:text-2xl font-black text-pink-400">1</p>
+            <div class="score-card">
+                <p class="score-label" style="color: #f472b6;">레벨</p>
+                <p id="level" class="score-val" style="color: #f472b6;">1</p>
             </div>
-            <div class="bg-black/30 p-2 rounded-xl border border-white/10">
-                <p class="text-xs text-emerald-300 font-bold">삭제한 줄</p>
-                <p id="lines" class="text-xl sm:text-2xl font-black text-emerald-400">0</p>
+            <div class="score-card">
+                <p class="score-label" style="color: #34d399;">삭제한 줄</p>
+                <p id="lines" class="score-val" style="color: #34d399;">0</p>
             </div>
         </div>
 
-        <!-- Canvas and Side Info Container -->
-        <div class="w-full flex justify-center items-start gap-3">
+        <!-- Game Area -->
+        <div class="game-layout">
 
-            <!-- Main Tetris Canvas Area -->
-            <div class="relative glass-panel p-2 rounded-2xl flex justify-center items-center">
-                <canvas id="tetris" width="240" height="480" class="bg-slate-950/80"></canvas>
+            <!-- Main Canvas & Overlay -->
+            <div class="canvas-wrapper glass-panel">
+                <canvas id="tetris" width="240" height="480"></canvas>
 
-                <!-- Combo Floating Banner -->
-                <div id="comboBanner" class="absolute pointer-events-none hidden top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-20">
-                    <span id="comboText" class="text-3xl sm:text-4xl font-extrabold text-yellow-300 combo-text drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
-                        2 COMBO!
-                    </span>
-                </div>
+                <!-- Start / Pause Overlay -->
+                <div id="overlay" class="overlay">
+                    <div id="overlayTitle" class="overlay-title">🎮 준비되셨나요?</div>
+                    <p id="overlaySub" class="overlay-sub">버튼이나 키보드로 블록을 맞춰보세요!</p>
 
-                <!-- Start / Pause / Game Over Overlay -->
-                <div id="overlay" class="absolute inset-0 bg-slate-950/85 backdrop-blur-sm rounded-2xl flex flex-col items-center justify-center p-4 z-30 transition-all duration-300">
-                    <div class="text-center space-y-4 max-w-xs">
-                        <div id="overlayTitle" class="text-3xl font-black text-yellow-300 drop-shadow-lg">
-                            🎮 준비되셨나요?
-                        </div>
-                        <p id="overlaySub" class="text-sm text-slate-200">
-                            버튼이나 키보드로 블록을 맞춰보세요!
-                        </p>
-
-                        <!-- Difficulty Selection -->
-                        <div class="space-y-1">
-                            <label class="text-xs text-cyan-300 font-bold">난이도 선택</label>
-                            <div class="flex justify-center gap-2">
-                                <button onclick="setDifficulty('easy')" id="diff-easy" class="diff-btn text-xs px-3 py-1.5 rounded-lg bg-emerald-500 font-bold text-white shadow-lg transition">쉬움</button>
-                                <button onclick="setDifficulty('normal')" id="diff-normal" class="diff-btn text-xs px-3 py-1.5 rounded-lg bg-yellow-500/30 border border-yellow-500/50 font-bold hover:bg-yellow-500/80 transition">보통</button>
-                                <button onclick="setDifficulty('hard')" id="diff-hard" class="diff-btn text-xs px-3 py-1.5 rounded-lg bg-red-500/30 border border-red-500/50 font-bold hover:bg-red-500/80 transition">어려움</button>
-                            </div>
-                        </div>
-
-                        <!-- Start/Resume Button -->
-                        <button id="startBtn" onclick="togglePlay()" class="btn-arcade w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-extrabold py-3 px-6 rounded-xl text-lg tracking-wider border border-white/30 shadow-lg">
-                            게임 시작하기!
-                        </button>
+                    <div class="diff-group">
+                        <button onclick="setDifficulty('easy')" id="diff-easy" class="diff-btn active">쉬움</button>
+                        <button onclick="setDifficulty('normal')" id="diff-normal" class="diff-btn">보통</button>
+                        <button onclick="setDifficulty('hard')" id="diff-hard" class="diff-btn">어려움</button>
                     </div>
+
+                    <button id="startBtn" onclick="togglePlay()" class="start-btn btn-arcade">
+                        게임 시작하기!
+                    </button>
                 </div>
             </div>
 
             <!-- Side Info Panel -->
-            <div class="flex flex-col gap-3 w-28 sm:w-32">
-                <div class="glass-panel p-3 rounded-2xl text-center flex flex-col items-center">
-                    <p class="text-xs font-bold text-cyan-300 mb-2">다음 블록</p>
-                    <canvas id="next" width="80" height="80" class="bg-slate-950/60 rounded-lg border border-white/10"></canvas>
+            <div class="side-panel">
+                <div class="side-box glass-panel" style="border-radius: 12px;">
+                    <p style="color: #67e8f9; font-weight: bold; margin-bottom: 4px;">다음 블록</p>
+                    <canvas id="next" width="80" height="80"></canvas>
                 </div>
 
-                <button id="pauseBtn" onclick="togglePause()" class="btn-arcade glass-panel p-3 rounded-2xl flex flex-col items-center justify-center hover:bg-white/20 transition group">
-                    <span id="pauseIcon" class="text-2xl mb-1">⏸️</span>
-                    <span id="pauseText" class="text-xs font-bold text-slate-200">일시정지</span>
+                <button id="pauseBtn" onclick="togglePause()" class="side-box glass-panel btn-arcade" style="border-radius: 12px; color: white; cursor: pointer;">
+                    <span id="pauseIcon" style="font-size: 20px;">⏸️</span><br>
+                    <span id="pauseText" style="font-weight: bold;">일시정지</span>
                 </button>
 
-                <div class="glass-panel p-2.5 rounded-2xl text-[11px] text-slate-300 space-y-1">
-                    <p class="font-bold text-yellow-300 text-xs text-center border-b border-white/10 pb-1 mb-1">💡 조작법</p>
+                <div class="side-box glass-panel" style="border-radius: 12px; text-align: left; line-height: 1.5; color: #cbd5e1;">
+                    <p style="color: #fde047; font-weight: bold; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2px; margin-bottom: 4px;">💡 조작법</p>
                     <p>◀️▶️ : 이동</p>
                     <p>🔄 : 회전</p>
                     <p>🔽 : 천천히</p>
@@ -272,57 +404,22 @@
         </div>
 
         <!-- Touch Controls -->
-        <div class="w-full max-w-md glass-panel p-3 rounded-2xl grid grid-cols-4 gap-2 text-xl font-bold">
-            <button onclick="handleTouchInput('left')" class="btn-arcade bg-indigo-600/70 hover:bg-indigo-600 active:bg-indigo-500 py-3 rounded-xl border border-indigo-400/30 flex items-center justify-center text-yellow-300">
-                ◀️
-            </button>
-            <button onclick="handleTouchInput('rotate')" class="btn-arcade bg-purple-600/70 hover:bg-purple-600 active:bg-purple-500 py-3 rounded-xl border border-purple-400/30 flex items-center justify-center text-pink-300">
-                🔄
-            </button>
-            <button onclick="handleTouchInput('right')" class="btn-arcade bg-indigo-600/70 hover:bg-indigo-600 active:bg-indigo-500 py-3 rounded-xl border border-indigo-400/30 flex items-center justify-center text-yellow-300">
-                ▶️
-            </button>
-            <button onclick="handleTouchInput('hardDrop')" class="btn-arcade bg-pink-600/80 hover:bg-pink-600 active:bg-pink-500 py-3 rounded-xl border border-pink-400/30 flex items-center justify-center text-cyan-300">
-                ⏬
-            </button>
-            <button onclick="handleTouchInput('down')" class="col-span-4 btn-arcade bg-slate-800/80 hover:bg-slate-700 active:bg-slate-600 py-2 rounded-xl border border-white/10 text-xs font-bold text-slate-200 flex items-center justify-center gap-2">
-                🔽 아래로 천천히 내리기 (Soft Drop)
-            </button>
+        <div class="control-grid glass-panel" style="border-radius: 16px;">
+            <button onclick="handleTouchInput('left')" class="ctrl-btn btn-arcade">◀️</button>
+            <button onclick="handleTouchInput('rotate')" class="ctrl-btn btn-arcade" style="background: rgba(147, 51, 234, 0.7);">🔄</button>
+            <button onclick="handleTouchInput('right')" class="ctrl-btn btn-arcade">▶️</button>
+            <button onclick="handleTouchInput('hardDrop')" class="ctrl-btn btn-arcade" style="background: rgba(219, 39, 119, 0.8);">⏬</button>
+            <button onclick="handleTouchInput('down')" class="soft-drop-btn btn-arcade">🔽 아래로 천천히 내리기 (Soft Drop)</button>
         </div>
 
     </main>
 
-    <!-- Footer -->
-    <footer class="text-xs text-slate-400 mt-2 text-center">
+    <footer style="font-size: 11px; color: #94a3b8; margin-top: 6px;">
         🎉 초등학교 5학년을 위한 신나는 파스텔 테트리스 게임
     </footer>
 
-    <!-- Complete JavaScript Code -->
+    <!-- Pure Native Sound & Game Engine Script -->
     <script>
-        let deferredPrompt;
-        const installBtn = document.getElementById('pwaInstallBtn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.classList.remove('hidden');
-        });
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    installBtn.classList.add('hidden');
-                }
-                deferredPrompt = null;
-            }
-        });
-
-        window.addEventListener('appinstalled', () => {
-            installBtn.classList.add('hidden');
-        });
-
         class SoundEngine {
             constructor() {
                 this.ctx = null;
@@ -362,39 +459,25 @@
             playLineClear(combo = 1) {
                 if (!this.ctx) return;
                 const baseFreq = 400 + (combo * 100);
-                const notes = [baseFreq, baseFreq * 1.25, baseFreq * 1.5, baseFreq * 2];
-                notes.forEach((freq, idx) => {
-                    setTimeout(() => {
-                        this.playTone(freq, 'sine', 0.15, 0.12);
-                    }, idx * 60);
+                [baseFreq, baseFreq * 1.25, baseFreq * 1.5, baseFreq * 2].forEach((freq, idx) => {
+                    setTimeout(() => this.playTone(freq, 'sine', 0.15, 0.12), idx * 60);
                 });
             }
 
             playGameOver() {
                 if (!this.ctx) return;
-                const notes = [300, 260, 220, 180, 140];
-                notes.forEach((freq, idx) => {
-                    setTimeout(() => {
-                        this.playTone(freq, 'sawtooth', 0.2, 0.12);
-                    }, idx * 100);
+                [300, 260, 220, 180, 140].forEach((freq, idx) => {
+                    setTimeout(() => this.playTone(freq, 'sawtooth', 0.2, 0.12), idx * 100);
                 });
             }
 
             toggleBGM() {
                 this.init();
                 this.bgmPlaying = !this.bgmPlaying;
-                const icon = document.getElementById('bgmIcon');
-                const text = document.getElementById('bgmText');
-
-                if (this.bgmPlaying) {
-                    icon.textContent = "🔊";
-                    text.textContent = "BGM 켬";
-                    this.startBGM();
-                } else {
-                    icon.textContent = "🔇";
-                    text.textContent = "BGM 끔";
-                    this.stopBGM();
-                }
+                document.getElementById('bgmIcon').textContent = this.bgmPlaying ? "🔊" : "🔇";
+                document.getElementById('bgmText').textContent = this.bgmPlaying ? "BGM 켬" : "BGM 끔";
+                if (this.bgmPlaying) this.startBGM();
+                else this.stopBGM();
             }
 
             startBGM() {
@@ -434,13 +517,13 @@
 
         const COLORS = [
             null,
-            '#00f0ff', // I - Cyan
-            '#ff007f', // J - Neon Pink
-            '#ff9900', // L - Orange
-            '#ffeb3b', // O - Yellow
-            '#00ff66', // S - Bright Green
-            '#a855f7', // T - Purple
-            '#ff3344'  // Z - Bright Red
+            '#00f0ff', // I
+            '#ff007f', // J
+            '#ff9900', // L
+            '#ffeb3b', // O
+            '#00ff66', // S
+            '#a855f7', // T
+            '#ff3344'  // Z
         ];
 
         const SHAPES = [
@@ -475,9 +558,7 @@
 
         function createMatrix(w, h) {
             const matrix = [];
-            while (h--) {
-                matrix.push(new Array(w).fill(0));
-            }
+            while (h--) matrix.push(new Array(w).fill(0));
             return matrix;
         }
 
@@ -575,8 +656,7 @@
             const [m, o] = [player.matrix, player.pos];
             for (let y = 0; y < m.length; ++y) {
                 for (let x = 0; x < m[y].length; ++x) {
-                    if (m[y][x] !== 0 &&
-                       (board[y + o.y] && board[y + o.y][x + o.x]) !== 0) {
+                    if (m[y][x] !== 0 && (board[y + o.y] && board[y + o.y][x + o.x]) !== 0) {
                         return true;
                     }
                 }
@@ -644,11 +724,8 @@
                     [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
                 }
             }
-            if (dir > 0) {
-                matrix.forEach(row => row.reverse());
-            } else {
-                matrix.reverse();
-            }
+            if (dir > 0) matrix.forEach(row => row.reverse());
+            else matrix.reverse();
         }
 
         function playerReset() {
@@ -671,9 +748,7 @@
             let rowCount = 0;
             outer: for (let y = board.length - 1; y >= 0; --y) {
                 for (let x = 0; x < board[y].length; ++x) {
-                    if (board[y][x] === 0) {
-                        continue outer;
-                    }
+                    if (board[y][x] === 0) continue outer;
                 }
                 const row = board.splice(y, 1)[0].fill(0);
                 board.unshift(row);
@@ -687,23 +762,10 @@
                 score += (rowCount * 100) * rowCount + (combo * 50);
                 level = Math.floor(lines / 10) + 1;
                 dropInterval = Math.max(100, diffSpeeds[selectedDiff] - (level - 1) * 80);
-                
                 sounds.playLineClear(combo);
-                showComboBanner(combo);
             } else {
                 combo = 0;
             }
-        }
-
-        function showComboBanner(comboCount) {
-            if (comboCount <= 1) return;
-            const banner = document.getElementById('comboBanner');
-            const text = document.getElementById('comboText');
-            text.textContent = `${comboCount} 콤보!! 🔥`;
-            banner.classList.remove('hidden');
-            setTimeout(() => {
-                banner.classList.add('hidden');
-            }, 1000);
         }
 
         function updateScore() {
@@ -729,10 +791,8 @@
 
         function setDifficulty(diff) {
             selectedDiff = diff;
-            document.querySelectorAll('.diff-btn').forEach(btn => {
-                btn.className = "diff-btn text-xs px-3 py-1.5 rounded-lg bg-yellow-500/20 border border-yellow-500/40 font-bold hover:bg-yellow-500/50 transition";
-            });
-            document.getElementById(`diff-${diff}`).className = "diff-btn text-xs px-3 py-1.5 rounded-lg bg-emerald-500 font-bold text-white shadow-lg transition";
+            document.querySelectorAll('.diff-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`diff-${diff}`).classList.add('active');
             dropInterval = diffSpeeds[diff];
         }
 
@@ -771,16 +831,13 @@
         function togglePause() {
             if (isGameOver) return;
             isPaused = !isPaused;
-            const icon = document.getElementById('pauseIcon');
-            const text = document.getElementById('pauseText');
-
             if (isPaused) {
-                icon.textContent = "▶️";
-                text.textContent = "계속하기";
+                document.getElementById('pauseIcon').textContent = "▶️";
+                document.getElementById('pauseText').textContent = "계속하기";
                 showOverlay("⏸️ 일시 정지", "잠시 쉬어가는 중입니다.");
             } else {
-                icon.textContent = "⏸️";
-                text.textContent = "일시정지";
+                document.getElementById('pauseIcon').textContent = "⏸️";
+                document.getElementById('pauseText').textContent = "일시정지";
                 hideOverlay();
                 lastTime = performance.now();
                 update();
@@ -806,31 +863,21 @@
             }
 
             switch(event.keyCode) {
-                case 37:
-                    playerMove(-1);
-                    break;
-                case 39:
-                    playerMove(1);
-                    break;
-                case 40:
-                    playerDrop();
-                    break;
-                case 38:
-                    playerRotate();
-                    break;
-                case 32:
-                    event.preventDefault();
-                    playerHardDrop();
-                    break;
-                case 80:
-                    togglePause();
-                    break;
+                case 37: playerMove(-1); break;
+                case 39: playerMove(1); break;
+                case 40: playerDrop(); break;
+                case 38: playerRotate(); break;
+                case 32: event.preventDefault(); playerHardDrop(); break;
+                case 80: togglePause(); break;
             }
             draw();
         });
 
-        // Initial setup
+        // Initialize First Frame Safely
         player.next = createPiece(Math.floor(Math.random() * 7) + 1);
+        player.matrix = createPiece(Math.floor(Math.random() * 7) + 1);
+        player.pos.x = Math.floor(COLS / 2) - Math.floor(player.matrix[0].length / 2);
+        player.pos.y = 0;
         draw();
     </script>
 </body>
