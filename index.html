@@ -17,7 +17,6 @@
     <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='%23ff007f'><rect width='512' height='512' rx='100' fill='%231e1b4b'/><path fill='%23ffeb3b' d='M160 160h60v60h-60zm60 0h60v60h-60zm60 0h60v60h-60zm-60 60h60v60h-60z'/></svg>">
 
     <style>
-        /* Pure Offline CSS Styles - No External Library Required */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -40,7 +39,6 @@
             overflow-x: hidden;
         }
 
-        /* Glassmorphic Panel UI */
         .glass-panel {
             background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(12px);
@@ -148,7 +146,6 @@
             box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
         }
 
-        /* Overlay Window */
         .overlay {
             position: absolute;
             inset: 0;
@@ -263,17 +260,29 @@
             color: #e2e8f0;
         }
 
+        .install-btn {
+            background: #10b981;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+        }
+
         .hidden {
             display: none !important;
         }
     </style>
 
-    <!-- Native Inline PWA Manifest & Service Worker -->
+    <!-- Inline Manifest Definition -->
     <script>
         const manifestData = {
             "name": "알록달록 테트리스",
             "short_name": "테트리스",
-            "start_url": "./",
+            "start_url": "./index.html",
             "display": "standalone",
             "background_color": "#1e1b4b",
             "theme_color": "#1e1b4b",
@@ -290,32 +299,6 @@
         linkManifest.rel = 'manifest';
         linkManifest.href = URL.createObjectURL(blobManifest);
         document.head.appendChild(linkManifest);
-
-        if ('serviceWorker' in navigator) {
-            const swCode = `
-                const CACHE_NAME = 'tetris-offline-v5';
-                self.addEventListener('install', (e) => self.skipWaiting());
-                self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
-                self.addEventListener('fetch', (e) => {
-                    e.respondWith(
-                        caches.match(e.request).then((cached) => {
-                            return cached || fetch(e.request).then((netRes) => {
-                                if (netRes && netRes.status === 200) {
-                                    const clone = netRes.clone();
-                                    caches.open(CACHE_NAME).then((c) => c.put(e.request, clone));
-                                }
-                                return netRes;
-                            }).catch(() => caches.match('./'));
-                        })
-                    );
-                });
-            `;
-            const blobSW = new Blob([swCode], { type: 'application/javascript' });
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register(URL.createObjectURL(blobSW))
-                    .catch(err => console.log('SW ERR:', err));
-            });
-        }
     </script>
 </head>
 <body>
@@ -331,9 +314,12 @@
                 <h1 class="app-title">알록달록 테트리스</h1>
             </div>
             
-            <button id="bgmBtn" class="glass-panel" style="padding: 4px 10px; font-size: 11px; font-weight: bold; border-radius: 20px; color: white; cursor: pointer;">
-                <span id="bgmIcon">🔇</span> <span id="bgmText">BGM 끔</span>
-            </button>
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <button id="pwaInstallBtn" class="install-btn hidden">📥 앱 설치</button>
+                <button id="bgmBtn" class="glass-panel" style="padding: 4px 10px; font-size: 11px; font-weight: bold; border-radius: 20px; color: white; cursor: pointer;">
+                    <span id="bgmIcon">🔇</span> <span id="bgmText">BGM 끔</span>
+                </button>
+            </div>
         </div>
     </header>
 
@@ -418,8 +404,41 @@
         🎉 초등학교 5학년을 위한 신나는 파스텔 테트리스 게임
     </footer>
 
-    <!-- Pure Native Sound & Game Engine Script -->
+    <!-- Game Engine & Service Worker Registration -->
     <script>
+        // --- 1. Service Worker & App Installation Prompt ---
+        let deferredPrompt = null;
+        const installBtn = document.getElementById('pwaInstallBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            if (installBtn) installBtn.classList.remove('hidden');
+        });
+
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    if (outcome === 'accepted') {
+                        installBtn.classList.add('hidden');
+                    }
+                    deferredPrompt = null;
+                }
+            });
+        }
+
+        // Register Service Worker from explicit sw.js file
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker Registered Successfully'))
+                    .catch(err => console.log('Service Worker Failed: ', err));
+            });
+        }
+
+        // --- 2. Sound Engine ---
         class SoundEngine {
             constructor() {
                 this.ctx = null;
@@ -503,6 +522,7 @@
         const sounds = new SoundEngine();
         document.getElementById('bgmBtn').addEventListener('click', () => sounds.toggleBGM());
 
+        // --- 3. Tetris Logic ---
         const canvas = document.getElementById('tetris');
         const context = canvas.getContext('2d');
         const nextCanvas = document.getElementById('next');
@@ -873,7 +893,7 @@
             draw();
         });
 
-        // Initialize First Frame Safely
+        // Initialize First Frame
         player.next = createPiece(Math.floor(Math.random() * 7) + 1);
         player.matrix = createPiece(Math.floor(Math.random() * 7) + 1);
         player.pos.x = Math.floor(COLS / 2) - Math.floor(player.matrix[0].length / 2);
